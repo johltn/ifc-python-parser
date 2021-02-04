@@ -12,13 +12,13 @@ header: "HEADER" ";" (IDENTIFIER |CHAR |SPECIAL| string )* "ENDSEC" ";"
 //data: "DATA" ";" (IDENTIFIER |CHAR |SPECIAL| string )* "ENDSEC" ";"
 data: "DATA" ";" record* "ENDSEC" ";"
 
-record: id "=" ifcclass "(" (IDENTIFIER |CHAR |SPECIAL| string )* ")" ";"
+record: id "=" ifcclass attributes ";"
 id: "#" (DIGIT)*
 ifcclass:"IFC" IDENTIFIER
 
-list: (attribute)*
+attributes: "(" attribute ("," attribute)* ")" 
 
-attribute: DIGIT | string | SPECIAL | list
+attribute:  INT | REAL| string | SPECIAL | attributes
 
 string    : "\"" ( WORD | ESCAPE | expansion ) * "\""
 expansion : "$" IDENTIFIER
@@ -56,7 +56,12 @@ SPECIAL : "!"
         | "`" 
         | "~"
         | "_"
+
+real: REAL
+REAL: SIGN?  DIGIT  (DIGIT)* "." (DIGIT)* ("E"  SIGN  DIGIT (DIGIT)* )?
+INT: SIGN? DIGIT  (DIGIT)* 
 DIGIT: "0".."9"
+SIGN: "+"|"-"
 IDENTIFIER: ("A" .. "Z" | "a" .. "z") ("A" .. "Z" | "a" .. "z" | "0" .. "9") *
 ESCAPE    : "\\" ( "$" | "\"" | CHAR )
 CHAR      : /[^$"\n]/
@@ -85,10 +90,15 @@ DATA;
 ENDSEC;
 END-ISO-10303-21;
 """
-text= "#4=IFCCARTESIANPOINT((0.,0.));"
+text= "#74=IFCCARTESIANPOINT((-0.,3.582999999999995), "a");"
+# text = "3.582999999999995"
 
 tree = ifc_parser.parse(text)
 
 print(dir(tree))
-print(tree.children[1])
+print(tree.pretty())
+
+# record = ifc_parser.parse(text)
+
+
 
