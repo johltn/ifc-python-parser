@@ -18,7 +18,7 @@ ifcclass:"IFC" IDENTIFIER
 
 attributes: "(" attribute ("," attribute)* ")" 
 
-attribute:  INT | REAL| string|attributes|id
+attribute:  INT | REAL|id|string |attributes 
 
 string: "'" (SPECIAL|DIGIT|LCASE_LETTER|UCASE_LETTER)* "'"
 
@@ -27,7 +27,6 @@ WO:(LCASE_LETTER)*
 expansion : "$" IDENTIFIER
 
 SPECIAL : "!"  
-		| "'"
         | "*" 
         | "$" 
         | "%" 
@@ -100,7 +99,7 @@ DATA;
 ENDSEC;
 END-ISO-10303-21;
 """
-text= "#74=IFCCARTESIANPOINT((-0.,3.582999999999995),'0ZYKm$d8LEM9zzp7h1vEUV', #165,32232);"
+text= "#74=IFCCARTESIANPOINT('a',(-0.,3.582999999999995),'0ZYKm$d8LEM9zzp7h1vEUV',#165,32232,#165,'0ZYKm$d8LEM9zzp7h1vEUV');"
 # text = "3.582999999999995"
 
 tree = ifc_parser.parse(text)
