@@ -18,13 +18,13 @@ ifcclass:"IFC" IDENTIFIER
 
 attributes: "(" attribute ("," attribute)* ")" 
 
-attribute:  INT | REAL| string | SPECIAL | attributes
+attribute:  INT | REAL| string|attributes|id
 
-string    : "\"" ( WORD | ESCAPE | expansion ) * "\""
+string: "'" (SPECIAL|DIGIT|LCASE_LETTER|UCASE_LETTER)* "'"
+
+WO:(LCASE_LETTER)*
+
 expansion : "$" IDENTIFIER
-
-
-
 
 SPECIAL : "!"  
 		| "'"
@@ -62,11 +62,21 @@ REAL: SIGN?  DIGIT  (DIGIT)* "." (DIGIT)* ("E"  SIGN  DIGIT (DIGIT)* )?
 INT: SIGN? DIGIT  (DIGIT)* 
 DIGIT: "0".."9"
 SIGN: "+"|"-"
-IDENTIFIER: ("A" .. "Z" | "a" .. "z") ("A" .. "Z" | "a" .. "z" | "0" .. "9") *
+
+
+
+LCASE_LETTER: "a".."z"
+UCASE_LETTER: "A".."Z"
+
+
+IDENTIFIER: ("A" .. "Z" | "a" .. "z") ("A" .. "Z" | "a" .. "z" | "0" .. "9")*
 ESCAPE    : "\\" ( "$" | "\"" | CHAR )
 CHAR      : /[^$"\n]/
-WORD      : CHAR +
+WORD      : CHAR+
 HASHTAG : "#"
+
+WS: /[ \t\f\r\n]/+
+%ignore WS
 
 %ignore "\n"
 
@@ -90,7 +100,7 @@ DATA;
 ENDSEC;
 END-ISO-10303-21;
 """
-text= "#74=IFCCARTESIANPOINT((-0.,3.582999999999995), "a");"
+text= "#74=IFCCARTESIANPOINT((-0.,3.582999999999995),'0ZYKm$d8LEM9zzp7h1vEUV', #165,32232);"
 # text = "3.582999999999995"
 
 tree = ifc_parser.parse(text)
