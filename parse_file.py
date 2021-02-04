@@ -18,7 +18,7 @@ ifcclass:"IFC" IDENTIFIER
 
 attributes: "(" attribute ("," attribute)* ")" 
 
-attribute:  NONE | INT | REAL|id|string |attributes 
+attribute:  NONE | INT | REAL|id|ifcclass attributes|string |attributes 
 
 string: "'" (SPECIAL|DIGIT|LCASE_LETTER|UCASE_LETTER)* "'"
 
@@ -62,11 +62,8 @@ INT: SIGN? DIGIT  (DIGIT)*
 DIGIT: "0".."9"
 SIGN: "+"|"-"
 
-
-
 LCASE_LETTER: "a".."z"
 UCASE_LETTER: "A".."Z"
-
 
 IDENTIFIER: ("A" .. "Z" | "a" .. "z") ("A" .. "Z" | "a" .. "z" | "0" .. "9")*
 ESCAPE    : "\\" ( "$" | "\"" | CHAR )
@@ -99,7 +96,7 @@ DATA;
 ENDSEC;
 END-ISO-10303-21;
 """
-text= "#183=IFCPROPERTYSET('33Z2A5uGP6BhMJTKqZjMhY',#33,'Pset_SpaceCommon',$,(#179,#180,#181,#182));"
+text= "#196=IFCPROPERTYSINGLEVALUE('Base Offset',$,IFCLENGTHMEASURE(0.),$);"
 # text = "3.582999999999995"
 
 tree = ifc_parser.parse(text)
