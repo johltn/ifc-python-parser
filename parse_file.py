@@ -18,12 +18,12 @@ ifcclass:"IFC" IDENTIFIER
 
 attributes: "(" attribute ("," attribute)* ")" 
 
-attribute:  INT | REAL|id|string |attributes 
+attribute:  NONE | INT | REAL|id|string |attributes 
 
 string: "'" (SPECIAL|DIGIT|LCASE_LETTER|UCASE_LETTER)* "'"
 
 WO:(LCASE_LETTER)*
-
+NONE: "$"
 expansion : "$" IDENTIFIER
 
 SPECIAL : "!"  
@@ -99,7 +99,7 @@ DATA;
 ENDSEC;
 END-ISO-10303-21;
 """
-text= "#74=IFCCARTESIANPOINT('a',(-0.,3.582999999999995),'0ZYKm$d8LEM9zzp7h1vEUV',#165,32232,#165,'0ZYKm$d8LEM9zzp7h1vEUV');"
+text= "#183=IFCPROPERTYSET('33Z2A5uGP6BhMJTKqZjMhY',#33,'Pset_SpaceCommon',$,(#179,#180,#181,#182));"
 # text = "3.582999999999995"
 
 tree = ifc_parser.parse(text)
