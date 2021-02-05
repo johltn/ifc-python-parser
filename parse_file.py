@@ -8,21 +8,25 @@ ifc_parser = Lark(r"""
 file: iso header data iso_end
 iso: "ISO-10303-21;"
 iso_end:"END-ISO-10303-21;"
-header: "HEADER" ";" (IDENTIFIER |CHAR |SPECIAL| string )* "ENDSEC" ";"
+header: "HEADER" ";" filerecord* "ENDSEC" ";"
 //data: "DATA" ";" (IDENTIFIER |CHAR |SPECIAL| string )* "ENDSEC" ";"
 data: "DATA" ";" record* "ENDSEC" ";"
-
+filerecord: filedecl attributes ";"
 record: id "=" ifcclass attributes ";"
 id: "#" (DIGIT)*
 ifcclass:"IFC" IDENTIFIER
+filedecl : "FILE_" IDENTIFIER
 
-attributes: "(" attribute ("," attribute)* ")" 
+attributes: "(" attribute ("," attribute)* ")" | "()" 
 
-attribute:  NONE | INT | REAL|id|ifcclass attributes|string |attributes 
+attribute:  STAR| NONE | INT | REAL | enumeration |id|ifcclass attributes|string |attributes 
+
+enumeration: "." (IDENTIFIER|"_")* "."
 
 string: "'" (SPECIAL|DIGIT|LCASE_LETTER|UCASE_LETTER)* "'"
 
 WO:(LCASE_LETTER)*
+STAR: "*"
 NONE: "$"
 expansion : "$" IDENTIFIER
 
@@ -76,35 +80,36 @@ WS: /[ \t\f\r\n]/+
 
 %ignore "\n"
 
-""", start='record')
+""", parser='lalr', start='file')
 
 f = open("Duplex_A_20110505.ifc", "r")
 
 text = f.read() 
-text = """
-ISO-10303-21;
-HEADER;
-FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
-FILE_NAME('0001','2011-05-05T12:10:27',(''),(''),'Autodesk Revit Architecture 2011 - 1.0','20100326_1700','');
-FILE_SCHEMA(('IFC2X3'));
-ENDSEC;
-DATA;
-#1=IFCORGANIZATION($,'Autodesk Revit Architecture 2011',$,$,$);
-#2=IFCAPPLICATION(#1,'2011','Autodesk Revit Architecture 2011','Revit');
-#4=IFCCARTESIANPOINT((0.,0.));
-#5=IFCDIRECTION((1.,0.,0.));
-ENDSEC;
-END-ISO-10303-21;
-"""
-text= "#196=IFCPROPERTYSINGLEVALUE('Base Offset',$,IFCLENGTHMEASURE(0.),$);"
+# text = """
+# ISO-10303-21;
+# HEADER;
+# FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
+# FILE_NAME('0001','2011-05-05T12:10:27',(''),(''),'Autodesk Revit Architecture 2011 - 1.0','20100326_1700','');
+# FILE_SCHEMA(('IFC2X3'));
+# ENDSEC;
+# DATA;
+# #1=IFCORGANIZATION($,'Autodesk Revit Architecture 2011',$,$,$);
+# #2=IFCAPPLICATION(#1,'2011','Autodesk Revit Architecture 2011','Revit');
+# #4=IFCCARTESIANPOINT((0.,0.));
+# #5=IFCDIRECTION((1.,0.,0.));
+# ENDSEC;
+# END-ISO-10303-21;
+# """
+# text= "#229=IFCSHAPEREPRESENTATION(#27,'Body','SweptSolid',(#226));"
 # text = "3.582999999999995"
-
+# text = "#15=IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.);"
 tree = ifc_parser.parse(text)
 
 print(dir(tree))
 print(tree.pretty())
 
 # record = ifc_parser.parse(text)
-
+# print(dir(tree.children[2].children[2]))
+# print(tree.children[2].children[2])
 
 
