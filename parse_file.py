@@ -1,15 +1,13 @@
-
 from lark import Lark
+import time
 
 # import pdb; pdb.set_trace()
-
 ifc_parser = Lark(r"""
 
 file: iso header data iso_end
 iso: "ISO-10303-21;"
 iso_end:"END-ISO-10303-21;"
 header: "HEADER" ";" filerecord* "ENDSEC" ";"
-//data: "DATA" ";" (IDENTIFIER |CHAR |SPECIAL| string )* "ENDSEC" ";"
 data: "DATA" ";" record* "ENDSEC" ";"
 filerecord: filedecl attributes ";"
 record: id "=" ifcclass attributes ";"
@@ -84,6 +82,7 @@ WS: /[ \t\f\r\n]/+
 
 f = open("Duplex_A_20110505.ifc", "r")
 
+
 text = f.read() 
 # text = """
 # ISO-10303-21;
@@ -103,13 +102,29 @@ text = f.read()
 # text= "#229=IFCSHAPEREPRESENTATION(#27,'Body','SweptSolid',(#226));"
 # text = "3.582999999999995"
 # text = "#15=IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.);"
+
+start_time = time.time()
+
 tree = ifc_parser.parse(text)
 
-print(dir(tree))
-print(tree.pretty())
+print("--- %s seconds ---" % (time.time() - start_time))
 
-# record = ifc_parser.parse(text)
-# print(dir(tree.children[2].children[2]))
-# print(tree.children[2].children[2])
+
+print(len(tree.children))
+print(dir(tree))
+print(tree.data)
+
+for c in tree.children:
+        print(c.data)
+        if c.data == 'header':
+                header = c
+        if c.data == 'data':
+                data = c
+
+
+for c in header.children:
+        print(c.data)
+
+record = data.children[45]
 
 
