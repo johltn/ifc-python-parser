@@ -7,6 +7,8 @@ ifc_parser = Lark(r"""
 file: "ISO-10303-21;" header data "END-ISO-10303-21;"
 
 header: "HEADER" ";" filerecord* "ENDSEC" ";"
+
+
 data: "DATA" ";" record* "ENDSEC" ";"
 filerecord: filedecl attributes ";"
 record: id "=" ifcclass attributes ";"
@@ -84,8 +86,8 @@ WS: /[ \t\f\r\n]/+
 
 f = open("files/Duplex_A_20110505.ifc", "r")
 
-
 text = f.read() 
+
 
 start_time = time.time()
 tree = ifc_parser.parse(text)
@@ -96,7 +98,6 @@ for c in tree.children:
         print(c.data)
 
 print("--- %s seconds ---" % (time.time() - start_time))
-
 
 
 
