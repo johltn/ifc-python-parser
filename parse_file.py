@@ -83,9 +83,9 @@ WS: /[ \t\f\r\n]/+
 
 """, parser='lalr', start='file')
 
-#f = open("files/Duplex_A_20110505.ifc", "r")
+f = open("files/Duplex_A_20110505.ifc", "r")
 
-f = open("files/acad2010_walls.ifc", "r")
+#f = open("files/acad2010_walls.ifc", "r")
 
 text = f.read() 
 
@@ -105,13 +105,23 @@ for filerecord in header.children:
 
 data = tree.children[1]
 
-test_record = data.children[41]
+test_record = data.children[42]
 
 entities = {}
 
-def process_attributes(attribues_tree):
-        print("Creating attributes...")
+def process_attributes(attributes_tree):
+        attributes = []
+        for a in attributes_tree.children:
+                if a.children[0].data == 'tup':
+                        attributes.append(process_attributes(a.children[0]))
+                elif a.children[0].data == 'string' :
+                        attributes.append(a)
+                elif a.children[0].data == 'id' :
+                        attributes.append(a)
+                else:
+                        attributes.append(a)
 
+        return attributes
 
 class T(Transformer):
         def id(self, s):
@@ -125,9 +135,9 @@ def create_entity(record):
         
         ifc_type = "IFC" + record.children[1].children[0]
        
-        attribues_tree = record.children[2]
-        attributes = process_attributes(attribues_tree)
+        attributes_tree = record.children[2]
+        attributes = process_attributes(attributes_tree)
 
-
+      
 create_entity(test_record)
 
