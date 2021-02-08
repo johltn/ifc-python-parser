@@ -83,9 +83,9 @@ WS: /[ \t\f\r\n]/+
 
 """, parser='lalr', start='file')
 
-f = open("files/Duplex_A_20110505.ifc", "r")
+#f = open("files/Duplex_A_20110505.ifc", "r")
 
-#f = open("files/acad2010_walls.ifc", "r")
+f = open("files/acad2010_walls.ifc", "r")
 
 text = f.read() 
 
@@ -104,4 +104,30 @@ for filerecord in header.children:
                 schema = "".join(char_list)     
 
 data = tree.children[1]
+
+test_record = data.children[41]
+
+entities = {}
+
+def process_attributes(attribues_tree):
+        print("Creating attributes...")
+
+
+class T(Transformer):
+        def id(self, s):
+                num_list = [str(n) for n in s ]
+                word = int("".join(num_list))
+                return word
+
+def create_entity(record):
+        id_tree = record.children[0]
+        file_id = T(visit_tokens=True).transform(id_tree)
+        
+        ifc_type = "IFC" + record.children[1].children[0]
+       
+        attribues_tree = record.children[2]
+        attributes = process_attributes(attribues_tree)
+
+
+create_entity(test_record)
 
