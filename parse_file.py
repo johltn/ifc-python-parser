@@ -105,9 +105,8 @@ for filerecord in header.children:
 
 data = tree.children[1]
 
-test_record = data.children[1]
+test_record = data.children[14]
 
-entities = {}
 
 
 class T(Transformer):
@@ -115,37 +114,54 @@ class T(Transformer):
                 num_list = [str(n) for n in s ]
                 word = int("".join(num_list))
                 return word
+        # def INTEGER(self, s):
+        #         num_list = [str(n) for n in s ]
+        #         word = int("".join(num_list))
+        #         return word
         def string(self, s):
                 word = "".join(s)
                 return word
         
         IDENTIFIER = str
-        INT = int
+        INTEGER = int
         REAL = float
-
+        NONE = str
+        STAR = str
 
 def process_attributes(attributes_tree, tup=False):
         attributes = []
         for a in attributes_tree.children:
-                if a.children[0].data == 'tup':
-                        attributes.append(process_attributes(a.children[0], tup=True))
-                elif a.children[0].data == 'string' :
-                        to_append = T(visit_tokens=True).transform(a)
-                        attributes.append(to_append.children[0])
-                elif a.children[0].data == 'id' :
-                        to_append = T(visit_tokens=True).transform(a)
-                        attributes.append(to_append.children[0])
-                elif a.children[0].data == 'enumeration' :
-                        to_append = T(visit_tokens=True).transform(a)
-                        attributes.append(to_append.children[0].children[0])
-                else:
-                        attributes.append(a)
+                
+                try:
+                        if a.children[0].data == 'tup':
+                                attributes.append(process_attributes(a.children[0], tup=True))
+                        elif a.children[0].data == 'string' :
+                                to_append = T(visit_tokens=True).transform(a)
+                                attributes.append(to_append.children[0])
+                        elif a.children[0].data == 'id' :
+                                to_append = T(visit_tokens=True).transform(a)
+                                attributes.append(to_append.children[0])
+                        elif a.children[0].data == 'enumeration' :
+                                to_append = T(visit_tokens=True).transform(a)
+                                attributes.append(to_append.children[0].children[0])
+                        # elif a.children[0].data == 'ifcclass' :
+                        #         print("IFC data")
+                
+
+
+                        else:
+                                attributes.append(a)
+                except:
+                        # When the tree contains a Token. Todo: more robust way to 
+                        # handle that case. 
+
+                        
+                        attributes.append(a.children[0][0])
 
         if tup:
                 return tuple(attributes)
         else:
                 return attributes
-
 
 
 def create_entity(record):
@@ -156,8 +172,18 @@ def create_entity(record):
         attributes_tree = record.children[2]
         attributes = process_attributes(attributes_tree)
 
-        print(attributes)
+
+        return {'id':file_id, 'ifc_type':ifc_type, 'attributes':attributes }
 
 
 create_entity(test_record)
+
+entities = [create_entity(r) for r in data.children]
+ents = {}
+
+for r in data.children:
+        entity = create_entity(r)
+        ents[entity['id']] = entity
+
+print(ents[43])
 
