@@ -105,39 +105,59 @@ for filerecord in header.children:
 
 data = tree.children[1]
 
-test_record = data.children[42]
+test_record = data.children[1]
 
 entities = {}
 
-def process_attributes(attributes_tree):
-        attributes = []
-        for a in attributes_tree.children:
-                if a.children[0].data == 'tup':
-                        attributes.append(process_attributes(a.children[0]))
-                elif a.children[0].data == 'string' :
-                        attributes.append(a)
-                elif a.children[0].data == 'id' :
-                        attributes.append(a)
-                else:
-                        attributes.append(a)
-
-        return attributes
 
 class T(Transformer):
         def id(self, s):
                 num_list = [str(n) for n in s ]
                 word = int("".join(num_list))
                 return word
+        def string(self, s):
+                word = "".join(s)
+                return word
+        
+        IDENTIFIER = str
+        INT = int
+        REAL = float
+
+
+def process_attributes(attributes_tree, tup=False):
+        attributes = []
+        for a in attributes_tree.children:
+                if a.children[0].data == 'tup':
+                        attributes.append(process_attributes(a.children[0], tup=True))
+                elif a.children[0].data == 'string' :
+                        to_append = T(visit_tokens=True).transform(a)
+                        attributes.append(to_append.children[0])
+                elif a.children[0].data == 'id' :
+                        to_append = T(visit_tokens=True).transform(a)
+                        attributes.append(to_append.children[0])
+                elif a.children[0].data == 'enumeration' :
+                        to_append = T(visit_tokens=True).transform(a)
+                        attributes.append(to_append.children[0].children[0])
+                else:
+                        attributes.append(a)
+
+        if tup:
+                return tuple(attributes)
+        else:
+                return attributes
+
+
 
 def create_entity(record):
         id_tree = record.children[0]
         file_id = T(visit_tokens=True).transform(id_tree)
         
         ifc_type = "IFC" + record.children[1].children[0]
-       
         attributes_tree = record.children[2]
         attributes = process_attributes(attributes_tree)
 
-      
+        print(attributes)
+
+
 create_entity(test_record)
 
