@@ -85,8 +85,6 @@ WS: /[ \t\f\r\n]/+
 
 f = open("files/Duplex_A_20110505.ifc", "r")
 
-#f = open("files/acad2010_walls.ifc", "r")
-
 text = f.read() 
 
 start_time = time.time()
@@ -105,34 +103,45 @@ for filerecord in header.children:
 
 data = tree.children[1]
 
-test_record = data.children[14]
-
-
+test_record = data.children[0]
+      
+class IfcType:
+        def __init__(self, ifctype, value):
+                self.ifctype = ifctype
+                self.value = value
+        def __str__(self):
+                return self.ifctype + "(" + str(self.value) + ")"
+        __repr__ = __str__
 
 class T(Transformer):
         def id(self, s):
                 num_list = [str(n) for n in s ]
                 word = int("".join(num_list))
                 return word
-        # def INTEGER(self, s):
-        #         num_list = [str(n) for n in s ]
-        #         word = int("".join(num_list))
-        #         return word
+        def INT(self, s):
+                num_list = [str(n) for n in s ]
+                word = int("".join(num_list))
+                return word
         def string(self, s):
                 word = "".join(s)
                 return word
-        
-        IDENTIFIER = str
-        INTEGER = int
+        def enumeration(self, s):
+                return s[0]
+
+        def IDENTIFIER(self, s):
+                word = "".join(s)
+                return word
+
+        INT = int
         REAL = float
         NONE = str
         STAR = str
 
+
 def process_attributes(attributes_tree, tup=False):
         attributes = []
         for a in attributes_tree.children:
-                
-                try:
+                try:     
                         if a.children[0].data == 'tup':
                                 attributes.append(process_attributes(a.children[0], tup=True))
                         elif a.children[0].data == 'string' :
@@ -142,21 +151,17 @@ def process_attributes(attributes_tree, tup=False):
                                 to_append = T(visit_tokens=True).transform(a)
                                 attributes.append(to_append.children[0])
                         elif a.children[0].data == 'enumeration' :
-                                to_append = T(visit_tokens=True).transform(a)
-                                attributes.append(to_append.children[0].children[0])
-                        # elif a.children[0].data == 'ifcclass' :
-                        #         print("IFC data")
-                
-
-
-                        else:
+                                # attributes.append(a.children[0].children[0])
+                                to_append = T(visit_tokens=True).transform(a).children[0]
+                                attributes.append(to_append)
+                        elif a.children[0].data == 'ifcclass' :
+                                attributes.append(create_entity(a, is_attr=1))
+                        else:  
                                 attributes.append(a)
                 except:
                         # When the tree contains a Token. Todo: more robust way to 
                         # handle that case. 
-
-                        
-                        attributes.append(a.children[0][0])
+                        attributes.append(T(visit_tokens=True).transform(a).children[0])
 
         if tup:
                 return tuple(attributes)
@@ -164,26 +169,29 @@ def process_attributes(attributes_tree, tup=False):
                 return attributes
 
 
-def create_entity(record):
-        id_tree = record.children[0]
-        file_id = T(visit_tokens=True).transform(id_tree)
-        
-        ifc_type = "IFC" + record.children[1].children[0]
-        attributes_tree = record.children[2]
-        attributes = process_attributes(attributes_tree)
+def create_entity(record, is_attr=False):
+        if is_attr:              
+                ifc_type = "IFC"+record.children[0].children[0]
+   
+                a = record.children[1].children[0]
+                val = T(visit_tokens=True).transform(a).children[0]
+
+                return IfcType(ifc_type, val)
+        else:
+                id_tree = record.children[0]
+                file_id = T(visit_tokens=True).transform(id_tree)
+                
+                ifc_type = "IFC" + record.children[1].children[0]
+                attributes_tree = record.children[2]
+                attributes = process_attributes(attributes_tree)
+
+                return {'id':file_id, 'ifc_type':ifc_type, 'attributes':attributes }
 
 
-        return {'id':file_id, 'ifc_type':ifc_type, 'attributes':attributes }
-
-
-create_entity(test_record)
-
-entities = [create_entity(r) for r in data.children]
 ents = {}
 
 for r in data.children:
         entity = create_entity(r)
         ents[entity['id']] = entity
 
-print(ents[43])
 
