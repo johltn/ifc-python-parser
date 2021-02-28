@@ -1,6 +1,8 @@
 from lark import Lark, Transformer
 import time
-
+import sys
+import os
+import json
 # import pdb; pdb.set_trace()
 ifc_parser = Lark(r"""
 
@@ -83,31 +85,7 @@ WS: /[ \t\f\r\n]/+
 
 """, parser='lalr', start='file')
 
-f = open("files/acad2010_walls.ifc", "r")
-text = f.read() 
 
-start_time = time.time()
-tree = ifc_parser.parse(text)
-
-print("--- %s seconds ---" % (time.time() - start_time))
-
-header = tree.children[0]
-
-for filerecord in header.children:
-        if filerecord.children[0].children[0] == 'SCHEMA':
-                schema_tree = filerecord.children[1]
-                schema_string = schema_tree.children[0].children[0].children[0].children[0]
-                char_list = [c[0] for c in schema_string.children ]
-                schema = "".join(char_list)     
-
-data = tree.children[1]
-
-test_record = data.children[0]
-
-
-rels = []
-
-drels = {}
       
 class IfcType:
         def __init__(self, ifctype, value):
@@ -205,17 +183,61 @@ def create_entity(record, is_attr=False):
                 return {'id':file_id, 'ifc_type':ifc_type, 'attributes':attributes }
 
 
-ents = {}
 
-for r in data.children:
-        entity = create_entity(r)
-        ents[entity['id']] = entity
+fn = "files/acad2010_walls.ifc"
+fn = ifc_fn = sys.argv[1]
+f = open(fn, "r")
+text = f.read() 
+jsonresultout = os.path.join(os.getcwd(), "result_syntax.json")
+start_time = time.time()
+
+try:
+        tree = ifc_parser.parse(text)
 
 
-for e in ents.values():
-        if e['id'] in drels.keys():
-                e['attributes'][1].extend(drels[e['id']])
 
+        print("--- %s seconds ---" % (time.time() - start_time))
+
+        header = tree.children[0]
+
+        for filerecord in header.children:
+                if filerecord.children[0].children[0] == 'SCHEMA':
+                        schema_tree = filerecord.children[1]
+                        schema_string = schema_tree.children[0].children[0].children[0].children[0]
+                        char_list = [c[0] for c in schema_string.children ]
+                        schema = "".join(char_list)     
+
+        data = tree.children[1]
+
+        test_record = data.children[0]
+
+
+        rels = []
+
+        drels = {}
+
+
+        ents = {}
+
+        for r in data.children:
+                entity = create_entity(r)
+                ents[entity['id']] = entity
+
+
+        for e in ents.values():
+                if e['id'] in drels.keys():
+                        e['attributes'][1].extend(drels[e['id']])
+
+        with open(jsonresultout, 'w', encoding='utf-8') as f:
+                json.dump({'syntax':'v'}, f, ensure_ascii=False, indent=4)
+
+
+
+except:
+        
+        
+        with open(jsonresultout, 'w', encoding='utf-8') as f:
+                json.dump({'syntax':'i'}, f, ensure_ascii=False, indent=4)
 
 
 
